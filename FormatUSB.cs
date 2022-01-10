@@ -1,11 +1,10 @@
-﻿using System.Diagnostics;
-using System.Management;
+﻿using System.Management;
 
 namespace TeslaLightShow;
 
-internal class FormatUSB
+public class DriveHelper
 {
-    public bool Formatter(string driveLetter, string fileSystem = "FAT32", bool quickFormat = true, int clusterSize = 4096, string label = "TesLight", bool enableCompression = false)
+    public bool FormatUsb(string driveLetter, string fileSystem = "FAT32", bool quickFormat = true, int clusterSize = 4096, string label = "TesLight", bool enableCompression = false)
     {
         //verify conditions for the letter format: driveLetter[0] must be letter. driveLetter[1] must be ":" and all the characters mustn't be more than 2
         if (driveLetter.Length != 2 || driveLetter[1] != ':' || !char.IsLetter(driveLetter[0]) || !Directory.Exists(driveLetter))
@@ -44,7 +43,6 @@ internal class FormatUSB
                 }
             }
         }
-
 
         string[] files = Directory.GetFiles(driveLetter);
         string[] directories = Directory.GetDirectories(driveLetter);
@@ -98,48 +96,5 @@ internal class FormatUSB
         }
 
         return true;
-    }
-
-    public static bool FormatDrive_CommandLine(char driveLetter, string label = "", string fileSystem = "FAT32", bool quickFormat = true, bool enableCompression = false, int? clusterSize = null)
-    {
-        if (!char.IsLetter(driveLetter))
-        {
-            return false;
-        }
-
-        bool success = false;
-        string drive = driveLetter + ":";
-        try
-        {
-            //DriveInfo di = new(drive);
-            ProcessStartInfo psi = new()
-            {
-                FileName = "format.com",
-                CreateNoWindow = true, //if you want to hide the window
-                WorkingDirectory = Environment.SystemDirectory,
-                Arguments = "/FS:" + fileSystem +
-                            " /Y" +
-                            " /V:" + label +
-                            (quickFormat ? " /Q" : "") +
-                            (fileSystem == "NTFS" && enableCompression ? " /C" : "") +
-                            (clusterSize.HasValue ? " /A:" + clusterSize.Value : "") +
-                            " " + drive,
-                UseShellExecute = false
-            };
-            psi.CreateNoWindow = true;
-            psi.RedirectStandardOutput = true;
-            psi.RedirectStandardInput = true;
-            Process? formatProcess = Process.Start(psi);
-            StreamWriter swStandardInput = formatProcess.StandardInput;
-            swStandardInput.WriteLine();
-            formatProcess.WaitForExit();
-            success = true;
-        }
-        catch (Exception)
-        {
-            // ignored
-        }
-
-        return success;
     }
 }

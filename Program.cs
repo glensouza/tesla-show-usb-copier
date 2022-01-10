@@ -9,7 +9,6 @@ using Console = Colorful.Console;
 using IHost host = Host.CreateDefaultBuilder(args).Build();
 IConfiguration config = host.Services.GetRequiredService<IConfiguration>();
 
-
 FigletFont font = FigletFont.Load("big.flf");
 Figlet figlet = new (font);
 
@@ -124,6 +123,9 @@ foreach (LightShow lightShow in lightShows)
     }
 }
 
-// TODO: PDF Open with envelope
+using (PdfHelper pdfHelper = new(lightShows.Select(s => s.ShowName).ToList()))
+{
+    pdfHelper.CreatePdf();
+}
 
 await host.RunAsync();
