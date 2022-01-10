@@ -3,10 +3,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Colorful;
+using TeslaLightShow;
 using Console = Colorful.Console;
 
 using IHost host = Host.CreateDefaultBuilder(args).Build();
 IConfiguration config = host.Services.GetRequiredService<IConfiguration>();
+
 
 FigletFont font = FigletFont.Load("big.flf");
 Figlet figlet = new (font);
@@ -78,15 +80,14 @@ foreach (string directory in Directory.GetDirectories(sourceFolder))
     lightShows.Add(new LightShow
     {
         AudioFile = audio,
-        Directory = directory,
         SequenceFile = sequence,
         ShowName = showName
     });
 }
 
-Console.WriteWithGradient("* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *", Color.Yellow, Color.Fuchsia, 14);
-Console.WriteLine();
-Console.WriteLine();
+//Console.WriteWithGradient("* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *", Color.Yellow, Color.Fuchsia, 14);
+//Console.WriteLine();
+//Console.WriteLine();
 if (!lightShows.Any())
 {
     Console.WriteLine("No directories found. Push [Enter] to end program.");
@@ -107,38 +108,10 @@ foreach (LightShow lightShow in lightShows)
         Console.ReadLine();
     }
 
-    foreach (string file in Directory.GetFiles(destinationDrive))
-    {
-        try
-        {
-            File.Delete(file);
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            throw;
-        }
-    }
+    // TODO: Check if same drive as previous run
+    // TODO: Format Drive
 
-    if (Directory.Exists(destinationFolder))
-    {
-        foreach (string file in Directory.GetFiles(destinationFolder))
-        {
-            try
-            {
-                File.Delete(file);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
-        }
-    }
-    else
-    {
-        Directory.CreateDirectory(destinationFolder);
-    }
+    Directory.CreateDirectory(destinationFolder);
 
     Console.WriteLine($"Copying Light Show {lightShow.ShowName}");
     await using (File.Create($"{destinationDrive}\\{lightShow.ShowName}")) {}
@@ -150,5 +123,7 @@ foreach (LightShow lightShow in lightShows)
         Console.ReadLine();
     }
 }
+
+// TODO: PDF Open with envelope
 
 await host.RunAsync();
