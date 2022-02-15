@@ -1,12 +1,11 @@
-﻿using System.Diagnostics;
-using System.Drawing;
-using Spire.Pdf;
+﻿using Spire.Pdf;
 using Spire.Pdf.Graphics;
 
-namespace TeslaLightShow;
+namespace TeslaLightShow.Helpers;
 
 public class PdfHelper : IDisposable
 {
+    private readonly string dateTime;
     private readonly PdfDocument doc = new("EnvelopeTemplates.pdf");
     private readonly PdfFont pdfFont = new(PdfFontFamily.Helvetica, 12f);
     private readonly PdfSolidBrush pdfBrush = new(Color.Black);
@@ -24,9 +23,11 @@ public class PdfHelper : IDisposable
     private readonly PdfPageBase page6;
     private readonly PdfGraphicsState state6;
 
-    public PdfHelper(List<string> fileNames)
+    public PdfHelper(string dateTime, List<string> fileNames)
     {
+        this.dateTime = dateTime;
         this.fileNames = fileNames;
+
         this.page1 = this.doc.Pages[0];
         this.state1 = this.page1.Canvas.Save();
         this.page1.Canvas.TranslateTransform(225, 410);
@@ -53,7 +54,7 @@ public class PdfHelper : IDisposable
         this.page6.Canvas.TranslateTransform(100, 220);
     }
 
-    public void CreatePdf()
+    public string CreatePdf()
     {
         for (int i = 0; i < 42; i++)
         {
@@ -88,6 +89,11 @@ public class PdfHelper : IDisposable
             this.page5.Canvas.DrawString($"{i + 1}. {(this.fileNames.Count < i + 1 ? "______________" : fileName)}", this.pdfFont, this.pdfBrush, (i < 9 ? 5 : 0) + (div14 * 137), (mod14 * 17));
             this.page6.Canvas.DrawString($"{i + 1}. {(this.fileNames.Count < i + 1 ? "______________" : fileName)}", this.pdfFont, this.pdfBrush, (i < 9 ? 5 : 0) + (div14 * 137), (mod14 * 17));
         }
+
+        string tempPdfFile = $"{Path.GetTempPath()}\\TeslaLightShow_{this.dateTime}.pdf";
+        this.doc.SaveToFile(tempPdfFile);
+        new Process { StartInfo = new ProcessStartInfo(tempPdfFile) { UseShellExecute = true } }.Start();
+        return tempPdfFile;
     }
 
     private void ReleaseUnmanagedResources()
@@ -98,10 +104,6 @@ public class PdfHelper : IDisposable
         this.page4.Canvas.Restore(this.state4);
         this.page5.Canvas.Restore(this.state5);
         this.page6.Canvas.Restore(this.state6);
-        string dateTime = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
-        string tempPdfFile = $"{Path.GetTempPath()}\\TeslaLightShow_{dateTime}.pdf";
-        this.doc.SaveToFile(tempPdfFile);
-        new Process { StartInfo = new ProcessStartInfo(tempPdfFile) { UseShellExecute = true } }.Start();
         this.doc.Dispose();
     }
 
